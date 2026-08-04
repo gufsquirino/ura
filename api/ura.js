@@ -1,47 +1,104 @@
 // ============================================================
-//  MOTOR DA URA  —  /api/ura
+//  MOTOR DA URA  —  /api/ura   (versão REST, sem supabase-js)
 //
-//  O DataCrazy chama isto a cada mensagem do aluno, mandando:
-//    { "telefone": "5511...", "mensagem": "2" }
+//  Fala com o Supabase via API REST (PostgREST) usando fetch.
+//  Não carrega @supabase/supabase-js -> imune ao erro de WebSocket
+//  do Realtime no Node 20. Zero dependencias externas.
 //
-//  O motor:
-//    1. lê em que nó o telefone está (Supabase)
-//    2. valida a resposta contra as opções desse nó
-//    3. decide o próximo nó
-//    4. salva o novo estado
-//    5. devolve { texto, acao, tag, move_etapa }
+//  Recebe do DataCrazy:
+//    {
+//      "telefone":    "5511...",
+//      "tipo":        "text" | "audio" | "image" | ...,
+//      "mensagem":    "<texto digitado>",     (quando tipo=text)
+//      "transcricao": "<audio transcrito>"    (quando tipo=audio)
+//    }
 //
-//  O DataCrazy envia `texto` ao aluno e, se vier `acao: "escalar"|"encerrar",
-//  faz a transferência/tag do lado dele.
+//  Devolve:
+//    { texto, acao, tag?, move_etapa? }
+//    acao: "enviar" | "escalar" | "encerrar"
 // ============================================================
 
-import { createClient } from "@supabase/supabase-js";
 import { FLUXO, render } from "./fluxo.js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // service key: precisa escrever na tabela
-);
+const SB_URL = process.env.SUPABASE_URL;          // https://xxx.supabase.co
+const SB_KEY = process.env.SUPABASE_SERVICE_KEY;  // sb_secret_...
 
-// normaliza a resposta do aluno pra comparar
+// ---------- helpers de banco (REST) ----------
+const sbHeaders = {
+  apikey: SB_KEY,
+  Authorization: `Bearer ${SB_KEY}`,
+  "Content-Type": "application/json",
+};
+
+async function lerEstado(telefone) {
+  const url = `${SB_URL}/rest/v1/ura_estado?telefone=eq.${telefone}&select=no_atual`;
+  const r = await fetch(url, { headers: sbHeaders });
+  if (!r.ok) throw new Error(`ler estado: ${r.status}`);
+  const rows = await r.json();
+  return rows[0] || null;
+}
+
+async function salvarEstado(telefone, no_atual) {
+  const url = `${SB_URL}/rest/v1/ura_estado`;
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { ...sbHeaders, Prefer: "resolution=merge-duplicates" },
+    body: JSON.stringify({
+      telefone,
+      no_atual,
+      atualizado_em: new Date().toISOString(),
+    }),
+  });
+  if (!r.ok) throw new Error(`salvar estado: ${r.status}`);
+}
+
+async function apagarEstado(telefone) {
+  const url = `${SB_URL}/rest/v1/ura_estado?telefone=eq.${telefone}`;
+  await fetch(url, { method: "DELETE", headers: sbHeaders });
+}
+
+async function logar(telefone, no_de, resposta, no_para) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/ura_log`, {
+      method: "POST",
+      headers: sbHeaders,
+      body: JSON.stringify({ telefone, no_de, resposta, no_para }),
+    });
+  } catch (_) {}
+}
+
+// ---------- helpers de logica ----------
 function norm(s) {
   return String(s || "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, ""); // tira acento
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
-// segue redirecionamentos (ramos ainda não portados apontam pra escalar)
 function resolveNo(nome) {
   let no = FLUXO[nome];
   let guard = 0;
-  while (no && no.redireciona && guard++ < 5) {
-    no = FLUXO[no.redireciona];
-  }
+  while (no && no.redireciona && guard++ < 5) no = FLUXO[no.redireciona];
   return no;
 }
 
+function casar(noAtual, resp) {
+  if (!noAtual?.opcoes) return null;
+  for (const op of noAtual.opcoes) {
+    if (op.aceita.some((a) => norm(a) === resp)) return op;
+  }
+  for (const op of noAtual.opcoes) {
+    const hit = op.aceita.some((a) => {
+      const an = norm(a);
+      return an.length >= 3 && resp.includes(an);
+    });
+    if (hit) return op;
+  }
+  return null;
+}
+
+// ---------- handler ----------
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ erro: "use POST" });
@@ -50,10 +107,6 @@ export default async function handler(req, res) {
   try {
     const telefone = String(req.body?.telefone || "").replace(/\D/g, "");
 
-    // Escolhe a fonte da mensagem conforme o tipo:
-    //  text  -> mensagem (Message-1.messageData.text)
-    //  audio -> transcricao (AI-1.text)
-    //  outro (imagem/figurinha/doc) -> sinaliza mídia
     const tipo = String(req.body?.tipo || "text").toLowerCase();
     let mensagem;
     if (tipo === "audio") {
@@ -61,7 +114,7 @@ export default async function handler(req, res) {
     } else if (tipo === "text" || tipo === "chat" || tipo === "") {
       mensagem = req.body?.mensagem ?? "";
     } else {
-      mensagem = "__MIDIA__"; // imagem, sticker, documento, etc.
+      mensagem = "__MIDIA__";
     }
 
     if (!telefone) {
@@ -71,33 +124,21 @@ export default async function handler(req, res) {
       });
     }
 
-    // Mídia que não é texto nem áudio: pede pra reenviar, não escala à toa
     if (mensagem === "__MIDIA__") {
       return res.status(200).json({
         texto:
-          "Recebi seu arquivo, mas aqui eu consigo te ajudar melhor por " +
-          "*texto* ou *áudio* 🙂\n\nMe conta sua dúvida em palavras?",
+          "Recebi seu arquivo, mas aqui eu te ajudo melhor por *texto* ou " +
+          "*áudio* 🙂\n\nMe conta sua dúvida em palavras?",
         acao: "enviar",
       });
     }
 
-    // 1. lê estado atual
-    const { data: estado } = await supabase
-      .from("ura_estado")
-      .select("no_atual")
-      .eq("telefone", telefone)
-      .maybeSingle();
+    const estado = await lerEstado(telefone);
 
-    // primeira mensagem do aluno -> começa no menu e JÁ mostra o menu
     if (!estado) {
-      await supabase.from("ura_estado").upsert({
-        telefone,
-        no_atual: "menu",
-        atualizado_em: new Date().toISOString(),
-      });
-      const menu = FLUXO.menu;
+      await salvarEstado(telefone, "menu");
       return res.status(200).json({
-        texto: render(menu.mensagem),
+        texto: render(FLUXO.menu.mensagem),
         acao: "enviar",
       });
     }
@@ -105,73 +146,27 @@ export default async function handler(req, res) {
     const noAtualNome = estado.no_atual;
     const noAtual = resolveNo(noAtualNome);
 
-    // 2. valida a resposta contra as opções
     const resp = norm(mensagem);
-    let destinoNome = null;
-    let tagAplicar = null;
+    const op = casar(noAtual, resp);
 
-    if (noAtual?.opcoes) {
-      // 1ª passada: match exato (mais confiável)
-      for (const op of noAtual.opcoes) {
-        if (op.aceita.some((a) => norm(a) === resp)) {
-          destinoNome = op.vai_para;
-          tagAplicar = op.tag || null;
-          break;
-        }
-      }
-      // 2ª passada: "contém" — pega áudio transcrito ("é o dois mesmo")
-      // e variações ("quero acesso"). Ignora palavras curtas p/ evitar
-      // falso positivo (ex: "1" dentro de "10").
-      if (!destinoNome) {
-        for (const op of noAtual.opcoes) {
-          const hit = op.aceita.some((a) => {
-            const an = norm(a);
-            return an.length >= 3 && resp.includes(an);
-          });
-          if (hit) {
-            destinoNome = op.vai_para;
-            tagAplicar = op.tag || null;
-            break;
-          }
-        }
-      }
-    }
-
-    // 3. não casou -> fallback do nó (ou escalar por segurança)
-    if (!destinoNome) {
-      destinoNome = noAtual?.fallback || "escalar";
-    }
+    let destinoNome = op ? op.vai_para : (noAtual?.fallback || "escalar");
+    const tagAplicar = op ? op.tag || null : null;
 
     const destino = resolveNo(destinoNome);
 
-    // log opcional (auditoria)
-    supabase.from("ura_log").insert({
-      telefone,
-      no_de: noAtualNome,
-      resposta: mensagem,
-      no_para: destinoNome,
-    }).then(() => {}, () => {}); // fire-and-forget
+    logar(telefone, noAtualNome, mensagem, destinoNome);
 
-    // 4. terminal? encerra a sessão (apaga estado) e devolve ação
     if (destino?.terminal) {
-      await supabase.from("ura_estado").delete().eq("telefone", telefone);
+      await apagarEstado(telefone);
       return res.status(200).json({
         texto: render(destino.mensagem),
-        acao: destinoNome === "escalar" ? "escalar"
-             : destinoNome === "timeout" ? "encerrar"
-             : "encerrar",
+        acao: destinoNome === "escalar" ? "escalar" : "encerrar",
         tag: destino.tag || tagAplicar || null,
         move_etapa: destino.move_etapa || null,
       });
     }
 
-    // 5. nó normal -> salva novo estado e manda a mensagem dele
-    await supabase.from("ura_estado").upsert({
-      telefone,
-      no_atual: destinoNome,
-      atualizado_em: new Date().toISOString(),
-    });
-
+    await salvarEstado(telefone, destinoNome);
     return res.status(200).json({
       texto: render(destino.mensagem),
       acao: "enviar",
@@ -180,7 +175,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error("erro no motor:", err);
-    // nunca deixa o aluno no vácuo: em erro, escala
     return res.status(200).json({
       texto:
         "Tive um probleminha aqui 😅 Vou te passar pro time:\n" +
