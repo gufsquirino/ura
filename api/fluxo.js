@@ -19,8 +19,14 @@ export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
 const RODAPE_ESCALA =
-  "Beleza, vou te conectar com o time 🙂\n\n" +
-  "⏰ Humano: {horario}\n🤖 A AGUIA responde na hora, 24h\n\n👉 {aguia}";
+  "A Central não resolveu? Então o próximo passo é chamar a *AGUIA* 🙂\n\n" +
+  "⚠️ O atendimento é iniciado por você: nosso time não vai chamar por este número.\n\n" +
+  "1️⃣ Clique no link abaixo e abra o canal da AGUIA\n" +
+  "2️⃣ Envie uma nova mensagem\n" +
+  "3️⃣ Descreva sua solicitação em detalhes: o que tentou, onde travou e, se possível, envie prints\n\n" +
+  "🤖 A AGUIA recebe mensagens 24h\n" +
+  "👤 Atendimento humano: {horario}\n\n" +
+  "👉 Chamar a AGUIA agora: {aguia}";
 const RODAPE_LARA =
   "Vou te passar pra *Lara*, que cuida disso pessoalmente.\n\n" +
   "⏰ {horario}\nSua solicitação já está registrada ✅\n\n👉 {lara}";
@@ -403,7 +409,7 @@ export const FLUXO = {
       RODAPE_LARA,
     terminal: true,
     tag: "[URA] encaminhado_LUMIA",
-    move_etapa: "reembolso",
+    move_etapa: "Solicitou Cancelamento na URA",
   },
   cancel_outro: {
     mensagem:
@@ -473,14 +479,14 @@ export const FLUXO = {
   },
   escalar: {
     terminal: true,
-    tag: "[URA] encaminhado",
-    move_etapa: "encaminhado",
+    tag: "[URA] encaminhado_AGUIA",
+    move_etapa: "Encaminhado pela URA",
     mensagem: RODAPE_ESCALA,
   },
   lumia: {
     terminal: true,
     tag: "[URA] encaminhado_LUMIA",
-    move_etapa: "reembolso",
+    move_etapa: "Solicitou Cancelamento na URA",
     mensagem: "Entendido 🙂 " + RODAPE_LARA,
   },
   revertido: {
