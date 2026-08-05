@@ -1,5 +1,6 @@
 // ============================================================
 //  MOTOR DA URA  —  /api/ura   (REST, sem supabase-js)
+//  BUILD: 20260805-1044 | Atualizado: 2026-08-05 10:44 -03
 //
 //  ARQUITETURA:
 //  - O TEMPLATE do WhatsApp mostra o menu principal (no canvas).
@@ -17,7 +18,7 @@
 //    acao: "enviar" | "escalar" | "encerrar"
 // ============================================================
 
-import { FLUXO, render, NO_ENTRADA } from "./fluxo.js";
+import { FLUXO, render, NO_ENTRADA, URA_BUILD } from "./fluxo.js";
 
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -109,6 +110,10 @@ function processar(noAtual, resp) {
 }
 
 export default async function handler(req, res) {
+  // Permite conferir no navegador/curl qual versão está publicada, sem
+  // exibir informação adicional nas mensagens enviadas ao aluno.
+  res.setHeader("X-URA-Version", URA_BUILD);
+
   if (req.method !== "POST") {
     return res.status(405).json({ erro: "use POST" });
   }
