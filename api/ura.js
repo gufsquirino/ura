@@ -102,13 +102,10 @@ function processar(noAtual, resp) {
   if (op) {
     return { destinoNome: op.vai_para, tagAplicar: op.tag || null, invalido: false };
   }
-  // não casou
-  if (noAtual?.invalido) {
-    // tem mensagem de "não entendi" própria -> reexplica, fica no mesmo nó
-    return { destinoNome: null, tagAplicar: null, invalido: true };
-  }
-  // sem invalido -> segue fallback
-  return { destinoNome: noAtual?.fallback || "escalar", tagAplicar: null, invalido: false };
+  // Qualquer resposta fora das opções mantém a pessoa no mesmo nó.
+  // A URA do DataCrazy trabalha com respostas numéricas, então não
+  // escalamos um atendimento apenas porque houve erro de digitação.
+  return { destinoNome: null, tagAplicar: null, invalido: true };
 }
 
 export default async function handler(req, res) {
@@ -148,6 +145,10 @@ export default async function handler(req, res) {
 
     const resp = norm(mensagem);
 
+    // O fluxo no CRM apresenta opções numeradas. Texto livre, mídia vazia
+    // ou números fora das opções do nó são tratados como nova tentativa.
+    const somenteNumero = /^\d+$/.test(resp);
+
     // lê estado
     const estado = await lerEstado(telefone);
 
@@ -162,7 +163,10 @@ export default async function handler(req, res) {
     }
 
     const noAtual = resolveNo(noAtualNome);
-    const { destinoNome, tagAplicar, invalido } = processar(noAtual, resp);
+    const resultado = somenteNumero
+      ? processar(noAtual, resp)
+      : { destinoNome: null, tagAplicar: null, invalido: true };
+    const { destinoNome, tagAplicar, invalido } = resultado;
 
     // resposta inválida com mensagem própria -> reexplica, mantém o nó
     if (invalido) {
@@ -170,7 +174,7 @@ export default async function handler(req, res) {
       await salvarEstado(telefone, noAtualNome);
       logar(telefone, noAtualNome, mensagem, noAtualNome + " (invalido)");
       return res.status(200).json({
-        texto: render(noAtual.invalido),
+        texto: "Responda somente com o número da opção, por favor. 🙂",
         acao: "enviar",
       });
     }
