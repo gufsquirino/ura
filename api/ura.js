@@ -115,6 +115,7 @@ export default async function handler(req, res) {
 
   try {
     const telefone = String(req.body?.telefone || "").replace(/\D/g, "");
+    const reiniciar = req.body?.reiniciar === true;
 
     // fonte da mensagem: texto, audio (transcricao) ou midia
     const tipo = String(req.body?.tipo || "text").toLowerCase();
@@ -148,6 +149,11 @@ export default async function handler(req, res) {
     // O fluxo no CRM apresenta opções numeradas. Texto livre, mídia vazia
     // ou números fora das opções do nó são tratados como nova tentativa.
     const somenteNumero = /^\d+$/.test(resp);
+
+    // O clique no menu principal inicia uma sessão nova. Isso evita que a
+    // opção escolhida seja interpretada contra um submenu antigo que ficou
+    // salvo após timeout, teste interrompido ou automação abandonada.
+    if (reiniciar) await apagarEstado(telefone);
 
     // lê estado
     const estado = await lerEstado(telefone);
