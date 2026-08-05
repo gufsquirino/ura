@@ -1,29 +1,27 @@
 // ============================================================
-//  MOTOR DA URA  —  /api/ura   (versão REST, sem supabase-js)
+//  MOTOR DA URA  —  /api/ura   (REST, sem supabase-js)
 //
-//  Fala com o Supabase via API REST (PostgREST) usando fetch.
-//  Não carrega @supabase/supabase-js -> imune ao erro de WebSocket
-//  do Realtime no Node 20. Zero dependencias externas.
+//  ARQUITETURA:
+//  - O TEMPLATE do WhatsApp mostra o menu principal (no canvas).
+//  - O motor NUNCA mostra o menu. Ele recebe a escolha (1-6) que o
+//    mapeamento do DataCrazy manda como "mensagem".
+//  - Primeira mensagem (sem estado) = a escolha do menu -> vai direto
+//    pro ramo. Da 2ª em diante = resposta dentro do ramo (sub-menus).
 //
 //  Recebe do DataCrazy:
-//    {
-//      "telefone":    "5511...",
-//      "tipo":        "text" | "audio" | "image" | ...,
-//      "mensagem":    "<texto digitado>",     (quando tipo=text)
-//      "transcricao": "<audio transcrito>"    (quando tipo=audio)
-//    }
+//    { "telefone": "...", "mensagem": "2", "tipo": "text", "transcricao": "" }
+//    (tipo e transcricao sao opcionais)
 //
 //  Devolve:
 //    { texto, acao, tag?, move_etapa? }
 //    acao: "enviar" | "escalar" | "encerrar"
 // ============================================================
 
-import { FLUXO, render } from "./fluxo.js";
+import { FLUXO, render, NO_ENTRADA } from "./fluxo.js";
 
-const SB_URL = process.env.SUPABASE_URL;          // https://xxx.supabase.co
-const SB_KEY = process.env.SUPABASE_SERVICE_KEY;  // sb_secret_...
+const SB_URL = process.env.SUPABASE_URL;
+const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-// ---------- helpers de banco (REST) ----------
 const sbHeaders = {
   apikey: SB_KEY,
   Authorization: `Bearer ${SB_KEY}`,
@@ -67,7 +65,6 @@ async function logar(telefone, no_de, resposta, no_para) {
   } catch (_) {}
 }
 
-// ---------- helpers de logica ----------
 function norm(s) {
   return String(s || "")
     .trim()
@@ -98,7 +95,22 @@ function casar(noAtual, resp) {
   return null;
 }
 
-// ---------- handler ----------
+// Processa uma resposta contra um nó e devolve o próximo destino.
+// Retorna { destinoNome, tagAplicar, invalido }
+function processar(noAtual, resp) {
+  const op = casar(noAtual, resp);
+  if (op) {
+    return { destinoNome: op.vai_para, tagAplicar: op.tag || null, invalido: false };
+  }
+  // não casou
+  if (noAtual?.invalido) {
+    // tem mensagem de "não entendi" própria -> reexplica, fica no mesmo nó
+    return { destinoNome: null, tagAplicar: null, invalido: true };
+  }
+  // sem invalido -> segue fallback
+  return { destinoNome: noAtual?.fallback || "escalar", tagAplicar: null, invalido: false };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ erro: "use POST" });
@@ -107,6 +119,7 @@ export default async function handler(req, res) {
   try {
     const telefone = String(req.body?.telefone || "").replace(/\D/g, "");
 
+    // fonte da mensagem: texto, audio (transcricao) ou midia
     const tipo = String(req.body?.tipo || "text").toLowerCase();
     let mensagem;
     if (tipo === "audio") {
@@ -133,29 +146,39 @@ export default async function handler(req, res) {
       });
     }
 
+    const resp = norm(mensagem);
+
+    // lê estado
     const estado = await lerEstado(telefone);
 
+    // ---------- PRIMEIRA MENSAGEM (sem estado) ----------
+    // É a escolha do menu que o TEMPLATE mostrou. O motor NÃO mostra
+    // menu -> processa a escolha (1-6) no nó de entrada e vai pro ramo.
+    let noAtualNome;
     if (!estado) {
-      await salvarEstado(telefone, "menu");
+      noAtualNome = NO_ENTRADA; // "entrada"
+    } else {
+      noAtualNome = estado.no_atual;
+    }
+
+    const noAtual = resolveNo(noAtualNome);
+    const { destinoNome, tagAplicar, invalido } = processar(noAtual, resp);
+
+    // resposta inválida com mensagem própria -> reexplica, mantém o nó
+    if (invalido) {
+      // garante que o estado do nó atual está salvo (pra próxima tentativa)
+      await salvarEstado(telefone, noAtualNome);
+      logar(telefone, noAtualNome, mensagem, noAtualNome + " (invalido)");
       return res.status(200).json({
-        texto: render(FLUXO.menu.mensagem),
+        texto: render(noAtual.invalido),
         acao: "enviar",
       });
     }
 
-    const noAtualNome = estado.no_atual;
-    const noAtual = resolveNo(noAtualNome);
-
-    const resp = norm(mensagem);
-    const op = casar(noAtual, resp);
-
-    let destinoNome = op ? op.vai_para : (noAtual?.fallback || "escalar");
-    const tagAplicar = op ? op.tag || null : null;
-
     const destino = resolveNo(destinoNome);
-
     logar(telefone, noAtualNome, mensagem, destinoNome);
 
+    // terminal -> encerra sessão
     if (destino?.terminal) {
       await apagarEstado(telefone);
       return res.status(200).json({
@@ -166,6 +189,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // nó normal -> salva e envia a mensagem do ramo
     await salvarEstado(telefone, destinoNome);
     return res.status(200).json({
       texto: render(destino.mensagem),
