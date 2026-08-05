@@ -1,5 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
+//  BUILD: 20260805-1044 | Atualizado: 2026-08-05 10:44 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -15,6 +16,7 @@ export const LINKS = {
   hub:      "https://snr.alynnegustavo.com.br/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
+export const URA_BUILD = "20260805-1044";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -417,7 +419,7 @@ export const FLUXO = {
       "1️⃣ Cobrança desconhecida\n2️⃣ Outro produto\n3️⃣ Não sei dizer",
     opcoes: [
       { aceita: ["1","cobranca","desconhecida"], vai_para: "cobranca" },
-      { aceita: ["2","outro produto","produto"], vai_para: "lumia" },
+      { aceita: ["2","outro produto","produto"], vai_para: "escalar" },
       { aceita: ["3","nao sei","nao sei dizer"], vai_para: "escalar" },
     ],
     fallback: "escalar",
@@ -431,7 +433,7 @@ export const FLUXO = {
       "1️⃣ Era isso, resolvido ✅\n2️⃣ Quero verificar",
     opcoes: [
       { aceita: ["1","sim","resolvido","era isso"], vai_para: "resolvido" },
-      { aceita: ["2","verificar","nao"],            vai_para: "lumia" },
+      { aceita: ["2","verificar","nao"],            vai_para: "escalar" },
     ],
     fallback: "escalar",
   },
