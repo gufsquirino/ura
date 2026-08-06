@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20260805-1044 | Atualizado: 2026-08-05 10:44 -03
+//  BUILD: 20260805-1235 | Atualizado: 2026-08-05 12:35 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -16,7 +16,7 @@ export const LINKS = {
   hub:      "https://snr.alynnegustavo.com.br/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20260805-1044";
+export const URA_BUILD = "20260805-1235";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -30,8 +30,14 @@ const RODAPE_ESCALA =
   "👤 Atendimento humano: {horario}\n\n" +
   "👉 Chamar a AGUIA agora: {aguia}";
 const RODAPE_LARA =
-  "Vou te passar pra *Lara*, que cuida disso pessoalmente.\n\n" +
-  "⏰ {horario}\nSua solicitação já está registrada ✅\n\n👉 {lara}";
+  "O próximo passo é chamar a *Lara*, que cuida disso pessoalmente.\n\n" +
+  "⚠️ O atendimento é iniciado por você: a Lara não vai chamar por este número.\n\n" +
+  "1️⃣ Clique no link abaixo e abra a conversa com a Lara\n" +
+  "2️⃣ Envie uma nova mensagem dizendo qual produto deseja cancelar\n" +
+  "3️⃣ Informe o e-mail usado na compra e explique sua solicitação em detalhes\n\n" +
+  "Sua solicitação será registrada depois que você enviar a mensagem.\n" +
+  "⏰ Atendimento: {horario}\n\n" +
+  "👉 Chamar a Lara agora: {lara}";
 
 export const FLUXO = {
   // ============ ENTRADA (vinda do template, escolha 1-7) ============
@@ -454,8 +460,9 @@ export const FLUXO = {
   },
   comercial: {
     mensagem:
-      "Que ótimo! 🎉 Vou te passar pra Lara — ela cuida disso pessoalmente.\n\n" +
-      "⏰ {horario}\n\n👉 {lara}",
+      "Que ótimo! 🎉 O próximo passo é você chamar a Lara — ela cuida disso pessoalmente.\n\n" +
+      "⚠️ O atendimento é iniciado por você: clique no link e envie uma nova mensagem explicando o que deseja.\n\n" +
+      "⏰ {horario}\n\n👉 Chamar a Lara agora: {lara}",
     terminal: true,
     tag: "[URA] comercial",
   },
