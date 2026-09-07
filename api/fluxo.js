@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20260805-1235 | Atualizado: 2026-08-05 12:35 -03
+//  BUILD: 20260907-1937 | Atualizado: 2026-09-07 19:37 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -16,7 +16,7 @@ export const LINKS = {
   hub:      "https://snr.alynnegustavo.com.br/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20260805-1235";
+export const URA_BUILD = "20260907-1937";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -369,6 +369,34 @@ export const FLUXO = {
     ],
     fallback: "escalar",
   },
+  // Cancelamentos que não são SNR/Aceleração seguem para diagnóstico geral.
+  // Se a orientação não resolver, o destino correto é AGUIA — nunca LUMIA.
+  cancel_outro: {
+    mensagem:
+      "Sem problema — me ajuda a entender do que se trata 🙂\n\n" +
+      "1️⃣ Cobrança desconhecida\n2️⃣ Outro produto\n3️⃣ Não sei dizer",
+    opcoes: [
+      { aceita: ["1","cobranca","desconhecida"], vai_para: "cobranca" },
+      { aceita: ["2","outro produto","produto"], vai_para: "escalar" },
+      { aceita: ["3","nao sei","nao sei dizer"], vai_para: "escalar" },
+    ],
+    invalido: "Escolha: 1 Cobrança desconhecida · 2 Outro produto · 3 Não sei dizer",
+    fallback: "escalar",
+  },
+  cobranca: {
+    mensagem:
+      "Vamos verificar isso 🔎\n\nDois casos comuns:\n" +
+      "📅 Comprou parcelado? As parcelas aparecem nos meses seguintes — é normal.\n" +
+      "🏪 Assinatura da Hoobfy? É cobrada separadamente do Sistema.\n\n" +
+      "Se não for nenhum dos dois, a AGUIA pode ajudar a identificar.\n\n" +
+      "1️⃣ Era isso, resolvido ✅\n2️⃣ Quero verificar",
+    opcoes: [
+      { aceita: ["1","sim","resolvido","era isso"], vai_para: "resolvido" },
+      { aceita: ["2","verificar","nao"], vai_para: "escalar" },
+    ],
+    invalido: "Escolha: 1 Era isso, resolvido · 2 Quero verificar",
+    fallback: "escalar",
+  },
   // ========================================================
   //  CANCELAMENTO — menu de objeções com pílula + PDF nativo
   //  Baseado nos 1.086 cancelamentos reais.
@@ -514,7 +542,8 @@ export const FLUXO = {
   },
   reter_tecnica: {
     terminal: true,
-    tag: "[URA] revertido",
+    acao: "escalar",
+    tag: "[URA] encaminhado_AGUIA",
     move_etapa: "Encaminhado pela URA",
     mensagem:
       "Boa decisão! 👊 Travar faz parte — todo mundo trava em alguma etapa.\n\n" +
