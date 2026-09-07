@@ -210,6 +210,9 @@ export default async function handler(req, res) {
       texto: render(destino.mensagem),
       acao: "enviar",
       tag: tagAplicar || null,
+      // "arquivo" indica ao canvas qual PDF anexar após o texto
+      // ("mapa" | "rotina" | "custo"); vazio = sem anexo.
+      arquivo: destino.arquivo || "",
     });
 
   } catch (err) {
