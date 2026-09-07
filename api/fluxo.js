@@ -347,9 +347,9 @@ export const FLUXO = {
       "Entendi. Só pra eu te direcionar certo — o que você quer cancelar?\n\n" +
       "1️⃣ Sistema Nova Renda\n2️⃣ Hoobfy\n3️⃣ Mentoria Aceleração\n4️⃣ Outro",
     opcoes: [
-      { aceita: ["1","sistema","snr","nova renda"], vai_para: "cancel_motivo" },
+      { aceita: ["1","sistema","snr","nova renda"], vai_para: "cancel_menu" },
       { aceita: ["2","hoobfy"],                     vai_para: "cancel_hoobfy" },
-      { aceita: ["3","mentoria","aceleracao"],      vai_para: "cancel_motivo" },
+      { aceita: ["3","mentoria","aceleracao"],      vai_para: "cancel_menu" },
       { aceita: ["4","outro"],                      vai_para: "cancel_outro" },
     ],
     invalido: "O que quer cancelar? 1 Sistema · 2 Hoobfy · 3 Mentoria · 4 Outro",
@@ -369,79 +369,159 @@ export const FLUXO = {
     ],
     fallback: "escalar",
   },
-  cancel_motivo: {
+  // ========================================================
+  //  CANCELAMENTO — menu de objeções com pílula + PDF nativo
+  //  Baseado nos 1.086 cancelamentos reais.
+  //  Campo "arquivo" = qual PDF o canvas deve soltar após o texto.
+  //    "mapa"   -> mapa-primeira-venda.pdf
+  //    "rotina" -> rotina-enxuta.pdf
+  //    "custo"  -> custo-real-para-comecar.pdf
+  //  (vazio = sem anexo)
+  // ========================================================
+  cancel_menu: {
     mensagem:
-      "Poxa, que pena 😔\n\nAntes de te encaminhar, qual o principal motivo?\n\n" +
-      "1️⃣ Travei em uma etapa\n2️⃣ Custos inesperados\n3️⃣ Esperava outra coisa\n4️⃣ Não tenho tempo\n5️⃣ Outro motivo",
+      "Poxa, que pena 😔 Mas antes de seguir, me conta rapidinho — " +
+      "qual foi o *principal* motivo?\n\n" +
+      "Prometo ser rápido, e talvez eu consiga te ajudar de um jeito que você nem imaginou 👇\n\n" +
+      "1️⃣ O conteúdo é diferente do que eu esperava\n" +
+      "2️⃣ Não me identifiquei com o modelo\n" +
+      "3️⃣ Falta de tempo pra executar\n" +
+      "4️⃣ Questão financeira / não quero gastar mais\n" +
+      "5️⃣ Dificuldade técnica — travei\n" +
+      "6️⃣ Outro motivo",
     opcoes: [
-      { aceita: ["1","travei","travou","tecnico"], vai_para: "cancel_travou" },
-      { aceita: ["2","custos","custo","caro"],     vai_para: "cancel_custos" },
-      { aceita: ["3","esperava","expectativa"],    vai_para: "lumia" },
-      { aceita: ["4","tempo","sem tempo"],         vai_para: "cancel_tempo" },
-      { aceita: ["5","outro"],                     vai_para: "lumia" },
+      { aceita: ["1","conteudo","diferente","esperava"], vai_para: "obj_conteudo", tag: "[REEMB] conteudo" },
+      { aceita: ["2","modelo","identifiquei","nao gostei"], vai_para: "obj_modelo", tag: "[REEMB] modelo" },
+      { aceita: ["3","tempo","sem tempo","falta de tempo"], vai_para: "obj_tempo", tag: "[REEMB] tempo" },
+      { aceita: ["4","financeira","dinheiro","gastar","caro"], vai_para: "obj_dinheiro", tag: "[REEMB] financeiro" },
+      { aceita: ["5","tecnica","travei","dificuldade"], vai_para: "obj_tecnica", tag: "[REEMB] tecnica" },
+      { aceita: ["6","outro","outro motivo"], vai_para: "obj_outro", tag: "[REEMB] outro" },
     ],
-    invalido: "Qual o motivo? 1 Travei · 2 Custos · 3 Esperava outra coisa · 4 Sem tempo · 5 Outro",
+    invalido: "Escolhe o motivo: 1 Conteúdo · 2 Modelo · 3 Tempo · 4 Financeiro · 5 Técnica · 6 Outro",
     fallback: "lumia",
   },
-  cancel_travou: {
+
+  // ---- 1. CONTEÚDO diferente (28%) -> Mapa da Primeira Venda ----
+  obj_conteudo: {
     mensagem:
-      "Peraí! Se o problema é técnico, isso a gente resolve 🛠️\n\n" +
-      "Muita gente pede cancelamento achando que travou de vez — e era uma etapa só.\n\n" +
-      "Deixa a gente tentar destravar primeiro?\n\n" +
-      "1️⃣ Sim, quero tentar 🙏\n2️⃣ Não, quero cancelar",
+      "Entendo — e é super comum sentir isso no começo 🙂\n\n" +
+      "O Sistema parece grande porque tem *muito material de apoio*. Mas o caminho pra sua primeira venda é curto: 3 passos, cada um leva menos de 1 hora. O resto é aprofundamento pra depois que você já estiver vendendo.\n\n" +
+      "Vou te mandar agora o *Mapa da Primeira Venda* — 1 página que mostra exatamente por onde começar 👇\n\n" +
+      "Dá uma olhada e me diz:\n1️⃣ Faz sentido, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
+    arquivo: "mapa",
     opcoes: [
-      { aceita: ["1","sim","tentar"],   vai_para: "revertido" },
-      { aceita: ["2","nao","cancelar"], vai_para: "lumia" },
+      { aceita: ["1","quero","tentar","sim","topo","aceito","faz sentido"], vai_para: "reter_bonus" },
+      { aceita: ["2","cancelar","nao","ainda"],               vai_para: "lumia" },
     ],
-    invalido: "Quer tentar destravar? 1️⃣ Sim · 2️⃣ Não, cancelar",
+    invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
     fallback: "lumia",
   },
-  cancel_custos: {
+
+  // ---- 2. MODELO (23%) -> Live da Josy (estudo de caso) ----
+  obj_modelo: {
     mensagem:
-      "Entendi — e a boa notícia é que esse custo não existe do jeito que você imaginou 👇\n\n" +
-      "✅ Hoobfy: 30 dias grátis com o cupom HOOBFY100\n" +
-      "✅ Domínio: opcional, ~R$60/ano. Dá pra vender sem\n" +
-      "✅ Anúncios: você define. Menos de R$100 já testa\n\n" +
-      "E dá pra começar vendendo no orgânico, sem gastar nada!\n\n" +
-      "Sabendo disso:\n1️⃣ Quero continuar 🙏\n2️⃣ Ainda quero cancelar",
+      "Faz sentido — e obrigado pela sinceridade 🙏\n\n" +
+      "Deixa eu te mostrar uma coisa antes de você decidir. A Josy começou *exatamente* do zero, investindo muito pouco, sem nunca ter vendido online. Ela contou tudo nessa live 👇\n\n" +
+      "🎥 https://www.instagram.com/p/DUD4SRMEe52/\n\n" +
+      "Não é sobre \"ter perfil\". É sobre ter o passo a passo certo — e ver alguém igual a você conseguir muda tudo.\n\n" +
+      "Depois de ver, me diz:\n1️⃣ Me interessei, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
     opcoes: [
-      { aceita: ["1","continuar","sim","tentar"], vai_para: "revertido" },
-      { aceita: ["2","cancelar","nao"],           vai_para: "lumia" },
+      { aceita: ["1","quero","ver","sim","interessei","aceito","tentar"], vai_para: "reter_bonus" },
+      { aceita: ["2","cancelar","nao","ainda"],                vai_para: "lumia" },
     ],
-    invalido: "1️⃣ Quero continuar · 2️⃣ Ainda quero cancelar",
+    invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
     fallback: "lumia",
   },
-  cancel_tempo: {
+
+  // ---- 3. TEMPO (18%) -> Rotina Enxuta (PDF) + agente IA ----
+  obj_tempo: {
     mensagem:
-      "Entendo — esse é o motivo mais comum de todos, você não está sozinho(a) 🙂\n\n" +
-      RODAPE_LARA,
+      "Entendo demais — esse é um dos motivos mais comuns, você não está sozinho(a) 🙂\n\n" +
+      "Mas olha: o Sistema foi feito pra rodar com *pouco tempo*. Com 30 min por dia já dá pra andar. Não precisa largar nada.\n\n" +
+      "Vou te mandar a *Rotina Enxuta* — um guia de 1 página pra encaixar o método na sua semana 👇\n\n" +
+      "💡 E tem um atalho: o Sistema tem um *agente de IA* que monta a rotina pra você. É só dizer quanto tempo você tem:\n" +
+      "👉 https://snr.alynnegustavo.com.br/agentes-ia/\n\n" +
+      "Com isso fica leve. Topa tentar?\n1️⃣ Assim eu tento 🙏\n2️⃣ Ainda quero cancelar",
+    arquivo: "rotina",
+    opcoes: [
+      { aceita: ["1","tento","quero","sim","topo","aceito"], vai_para: "reter_bonus" },
+      { aceita: ["2","cancelar","nao","ainda"],              vai_para: "lumia" },
+    ],
+    invalido: "1️⃣ Assim eu tento · 2️⃣ Ainda quero cancelar",
+    fallback: "lumia",
+  },
+
+  // ---- 4. FINANCEIRA (12%) -> Custo Real (PDF) ----
+  obj_dinheiro: {
+    mensagem:
+      "Entendo — e a boa notícia é que esse gasto extra *não é o que você imagina* 👇\n\n" +
+      "Vou te mandar a planilha *Custo Real Para Começar* — ela mostra, item por item, que quase tudo é grátis, opcional ou já embutido na precificação. Seu custo pra começar hoje é praticamente zero.\n\n" +
+      "✅ Hoobfy: 30 dias grátis (cupom HOOBFY100)\n" +
+      "✅ IA e fornecedor: grátis no SNR\n" +
+      "✅ Produto: sem estoque, você não compra antes de vender\n\n" +
+      "Dá uma olhada e me diz:\n1️⃣ Faz sentido, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
+    arquivo: "custo",
+    opcoes: [
+      { aceita: ["1","faz sentido","quero","tentar","sim","aceito"], vai_para: "reter_bonus" },
+      { aceita: ["2","cancelar","nao","ainda"],                      vai_para: "lumia" },
+    ],
+    invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
+    fallback: "lumia",
+  },
+
+  // ---- 5. TÉCNICA (6%) -> suporte humano, sem PDF ----
+  obj_tecnica: {
+    mensagem:
+      "Peraí! Se você travou numa parte técnica, isso a gente *resolve* 🛠️\n\n" +
+      "Muita gente pede cancelamento achando que travou de vez — e era só uma etapa. Não faz sentido desistir por um obstáculo que a gente destrava rapidinho.\n\n" +
+      "Deixa eu te conectar com o suporte pra destravar *antes* de qualquer decisão?\n\n" +
+      "1️⃣ Sim, quero destravar 🙏\n2️⃣ Não, quero cancelar mesmo assim",
+    opcoes: [
+      { aceita: ["1","sim","destravar","quero","tentar"], vai_para: "reter_tecnica" },
+      { aceita: ["2","nao","cancelar","mesmo assim"],     vai_para: "lumia" },
+    ],
+    invalido: "1️⃣ Quero destravar · 2️⃣ Cancelar mesmo assim",
+    fallback: "lumia",
+  },
+
+  // ---- 6. OUTRO (2%) -> Jornada Aceleração ----
+  obj_outro: {
+    mensagem:
+      "Entendi 🙂 Antes de finalizar, deixa eu te fazer só uma oferta:\n\n" +
+      "Posso liberar de graça *6 meses da Jornada Aceleração* + acesso às oficinas extras (IA, vídeos virais, tráfego). Sem custo nenhum — só pra você ter mais recurso na mão.\n\n" +
+      "Quer aproveitar e dar mais uma chance?\n\n" +
+      "1️⃣ Quero aproveitar 🙏\n2️⃣ Não, seguir com o cancelamento",
+    opcoes: [
+      { aceita: ["1","quero","aproveitar","sim","aceito"], vai_para: "reter_bonus" },
+      { aceita: ["2","nao","cancelar","seguir"],           vai_para: "lumia" },
+    ],
+    invalido: "1️⃣ Quero aproveitar · 2️⃣ Seguir com o cancelamento",
+    fallback: "lumia",
+  },
+
+  // ---- FECHO POSITIVO ----
+  reter_bonus: {
     terminal: true,
-    tag: "[URA] encaminhado_LUMIA",
-    move_etapa: "Solicitou Cancelamento na URA",
-  },
-  cancel_outro: {
+    tag: "[URA] revertido",
+    move_etapa: "Resolvido pela URA",
     mensagem:
-      "Sem problema — me ajuda a te direcionar 🙂\n\n" +
-      "1️⃣ Cobrança desconhecida\n2️⃣ Outro produto\n3️⃣ Não sei dizer",
-    opcoes: [
-      { aceita: ["1","cobranca","desconhecida"], vai_para: "cobranca" },
-      { aceita: ["2","outro produto","produto"], vai_para: "escalar" },
-      { aceita: ["3","nao sei","nao sei dizer"], vai_para: "escalar" },
-    ],
-    fallback: "escalar",
+      "Que decisão massa! 🙌 Fico muito feliz.\n\n" +
+      "O fato de você ter chegado até aqui já mostra que você quer que dê certo. Então bora 👊\n\n" +
+      "📌 A Lara vai confirmar os *6 meses da Jornada Aceleração* no seu acesso em breve.\n\n" +
+      "🎥 Enquanto isso, já entra no Hub e dá o próximo passo: {hub}\n\n" +
+      "⚠️ Dica de ouro: assista pausando e executando junto. As aulas têm 10 min, mas quem só assiste não sai do lugar.\n\n" +
+      "🤖 Travou em algo? Chama a AGUIA, responde 24h: {aguia}",
   },
-  cobranca: {
+  reter_tecnica: {
+    terminal: true,
+    tag: "[URA] revertido",
+    move_etapa: "Encaminhado pela URA",
     mensagem:
-      "Vamos verificar isso 🔎\n\nDois casos comuns:\n" +
-      "📅 Comprou parcelado? As parcelas aparecem nos meses seguintes — é normal.\n" +
-      "🏪 Assinatura da Hoobfy? É cobrada separada do Sistema.\n\n" +
-      "Se não for nenhum dos dois, te passo pro financeiro.\n\n" +
-      "1️⃣ Era isso, resolvido ✅\n2️⃣ Quero verificar",
-    opcoes: [
-      { aceita: ["1","sim","resolvido","era isso"], vai_para: "resolvido" },
-      { aceita: ["2","verificar","nao"],            vai_para: "escalar" },
-    ],
-    fallback: "escalar",
+      "Boa decisão! 👊 Travar faz parte — todo mundo trava em alguma etapa.\n\n" +
+      "Vou te conectar com o suporte pra destravar. Quando abrir a conversa, diz *exatamente* onde você parou (e manda print se puder) que eles resolvem rápido.\n\n" +
+      "👉 {aguia}\n\n" +
+      "⚠️ O atendimento começa por você: clique no link e mande uma nova mensagem.\n" +
+      "⏰ Humano: {horario} · 🤖 IA responde na hora",
   },
 
   // ================= OUTRO / COMERCIAL =================
