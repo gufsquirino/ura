@@ -1,6 +1,6 @@
 // ============================================================
 //  MOTOR DA URA  —  /api/ura   (REST, sem supabase-js)
-//  BUILD: 20260907-2102 | Atualizado: 2026-09-07 21:02 -03
+//  BUILD: 20260907-2123 | Atualizado: 2026-09-07 21:23 -03
 //
 //  ARQUITETURA:
 //  - O TEMPLATE do WhatsApp mostra o menu principal (no canvas).
