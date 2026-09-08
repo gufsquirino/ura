@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20260907-2123 | Atualizado: 2026-09-07 21:23 -03
+//  BUILD: 20260907-2132 | Atualizado: 2026-09-07 21:32 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -15,8 +15,11 @@ export const LINKS = {
   lara:     "https://wa.me/5516982205201",
   hub:      "https://app.sistemanovarenda.com/",
   central:  "https://ajuda.sistemanovarenda.com/",
+  mapaPdf:  "https://g1cdn1.datacrazy.io/f14aa054-0935-42b0-804b-c59fc0d6e352/flow-attachments/01a07deb-a6cc-738f-8f16-3c62c52bf5f7",
+  rotinaPdf:"https://g1cdn1.datacrazy.io/f14aa054-0935-42b0-804b-c59fc0d6e352/flow-attachments/01a07deb-e4a3-76b0-b4a2-a538a8360009",
+  custoPdf: "https://g1cdn1.datacrazy.io/f14aa054-0935-42b0-804b-c59fc0d6e352/flow-attachments/01a07deb-5709-7523-a885-13a6b366d839",
 };
-export const URA_BUILD = "20260907-2123";
+export const URA_BUILD = "20260907-2132";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -435,6 +438,7 @@ export const FLUXO = {
       "Entendo — e é super comum sentir isso no começo 🙂\n\n" +
       "O Sistema parece grande porque tem *muito material de apoio*. Mas o caminho pra sua primeira venda é curto: 3 passos, cada um leva menos de 1 hora. O resto é aprofundamento pra depois que você já estiver vendendo.\n\n" +
       "Vou te mandar agora o *Mapa da Primeira Venda* — 1 página que mostra exatamente por onde começar 👇\n\n" +
+      "📎 Se o PDF não aparecer abaixo, baixe aqui: {mapa_pdf}\n\n" +
       "Dá uma olhada e me diz:\n1️⃣ Faz sentido, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
     arquivo: "mapa",
     opcoes: [
@@ -467,6 +471,7 @@ export const FLUXO = {
       "Entendo demais — esse é um dos motivos mais comuns, você não está sozinho(a) 🙂\n\n" +
       "Mas olha: o Sistema foi feito pra rodar com *pouco tempo*. Com 30 min por dia já dá pra andar. Não precisa largar nada.\n\n" +
       "Vou te mandar a *Rotina Enxuta* — um guia de 1 página pra encaixar o método na sua semana 👇\n\n" +
+      "📎 Se o PDF não aparecer abaixo, baixe aqui: {rotina_pdf}\n\n" +
       "💡 E tem um atalho: o Sistema tem um *agente de IA* que monta a rotina pra você. É só dizer quanto tempo você tem:\n" +
       "👉 https://app.sistemanovarenda.com/agentes-ia/\n\n" +
       "Com isso fica leve. Topa tentar?\n1️⃣ Assim eu tento 🙏\n2️⃣ Ainda quero cancelar",
@@ -484,6 +489,7 @@ export const FLUXO = {
     mensagem:
       "Entendo — e a boa notícia é que esse gasto extra *não é o que você imagina* 👇\n\n" +
       "Vou te mandar a planilha *Custo Real Para Começar* — ela mostra, item por item, que quase tudo é grátis, opcional ou já embutido na precificação. Seu custo pra começar hoje é praticamente zero.\n\n" +
+      "📎 Se o PDF não aparecer abaixo, baixe aqui: {custo_pdf}\n\n" +
       "✅ Hoobfy: 30 dias grátis (cupom HOOBFY100)\n" +
       "✅ IA e fornecedor: grátis no SNR\n" +
       "✅ Produto: sem estoque, você não compra antes de vender\n\n" +
@@ -645,5 +651,8 @@ export function render(t) {
     .replaceAll("{lara}", LINKS.lara)
     .replaceAll("{hub}", LINKS.hub)
     .replaceAll("{central}", LINKS.central)
+    .replaceAll("{mapa_pdf}", LINKS.mapaPdf)
+    .replaceAll("{rotina_pdf}", LINKS.rotinaPdf)
+    .replaceAll("{custo_pdf}", LINKS.custoPdf)
     .replaceAll("{horario}", HORARIO);
 }
