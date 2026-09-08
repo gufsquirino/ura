@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20260907-2102 | Atualizado: 2026-09-07 21:02 -03
+//  BUILD: 20260907-2123 | Atualizado: 2026-09-07 21:23 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -16,7 +16,7 @@ export const LINKS = {
   hub:      "https://app.sistemanovarenda.com/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20260907-2102";
+export const URA_BUILD = "20260907-2123";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
