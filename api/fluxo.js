@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20260907-2042 | Atualizado: 2026-09-07 20:42 -03
+//  BUILD: 20260907-2102 | Atualizado: 2026-09-07 21:02 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -13,10 +13,10 @@
 export const LINKS = {
   aguia:    "https://wa.me/5582991269814",
   lara:     "https://wa.me/5516982205201",
-  hub:      "https://snr.alynnegustavo.com.br/",
+  hub:      "https://app.sistemanovarenda.com/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20260907-2042";
+export const URA_BUILD = "20260907-2102";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -438,7 +438,7 @@ export const FLUXO = {
       "Dá uma olhada e me diz:\n1️⃣ Faz sentido, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
     arquivo: "mapa",
     opcoes: [
-      { aceita: ["1","quero","tentar","sim","topo","aceito","faz sentido"], vai_para: "reter_bonus" },
+      { aceita: ["1","quero","tentar","sim","topo","aceito","faz sentido"], vai_para: "reter_continuar" },
       { aceita: ["2","cancelar","nao","ainda"],               vai_para: "lumia" },
     ],
     invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
@@ -454,7 +454,7 @@ export const FLUXO = {
       "Não é sobre \"ter perfil\". É sobre ter o passo a passo certo — e ver alguém igual a você conseguir muda tudo.\n\n" +
       "Depois de ver, me diz:\n1️⃣ Me interessei, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
     opcoes: [
-      { aceita: ["1","quero","ver","sim","interessei","aceito","tentar"], vai_para: "reter_bonus" },
+      { aceita: ["1","quero","ver","sim","interessei","aceito","tentar"], vai_para: "reter_continuar" },
       { aceita: ["2","cancelar","nao","ainda"],                vai_para: "lumia" },
     ],
     invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
@@ -468,11 +468,11 @@ export const FLUXO = {
       "Mas olha: o Sistema foi feito pra rodar com *pouco tempo*. Com 30 min por dia já dá pra andar. Não precisa largar nada.\n\n" +
       "Vou te mandar a *Rotina Enxuta* — um guia de 1 página pra encaixar o método na sua semana 👇\n\n" +
       "💡 E tem um atalho: o Sistema tem um *agente de IA* que monta a rotina pra você. É só dizer quanto tempo você tem:\n" +
-      "👉 https://snr.alynnegustavo.com.br/agentes-ia/\n\n" +
+      "👉 https://app.sistemanovarenda.com/agentes-ia/\n\n" +
       "Com isso fica leve. Topa tentar?\n1️⃣ Assim eu tento 🙏\n2️⃣ Ainda quero cancelar",
     arquivo: "rotina",
     opcoes: [
-      { aceita: ["1","tento","quero","sim","topo","aceito"], vai_para: "reter_bonus" },
+      { aceita: ["1","tento","quero","sim","topo","aceito"], vai_para: "reter_continuar" },
       { aceita: ["2","cancelar","nao","ainda"],              vai_para: "lumia" },
     ],
     invalido: "1️⃣ Assim eu tento · 2️⃣ Ainda quero cancelar",
@@ -490,7 +490,7 @@ export const FLUXO = {
       "Dá uma olhada e me diz:\n1️⃣ Faz sentido, quero tentar 🙏\n2️⃣ Ainda quero cancelar",
     arquivo: "custo",
     opcoes: [
-      { aceita: ["1","faz sentido","quero","tentar","sim","aceito"], vai_para: "reter_bonus" },
+      { aceita: ["1","faz sentido","quero","tentar","sim","aceito"], vai_para: "reter_continuar" },
       { aceita: ["2","cancelar","nao","ainda"],                      vai_para: "lumia" },
     ],
     invalido: "1️⃣ Quero tentar · 2️⃣ Ainda quero cancelar",
@@ -527,7 +527,22 @@ export const FLUXO = {
     fallback: "lumia",
   },
 
-  // ---- FECHO POSITIVO ----
+  // ---- FECHOS POSITIVOS ----
+  // Usado para conteúdo, modelo, tempo e financeiro. Não promete bônus.
+  reter_continuar: {
+    terminal: true,
+    tag: "[URA] revertido",
+    move_etapa: "Resolvido pela URA",
+    mensagem:
+      "Que decisão massa! 🙌 Fico muito feliz que você decidiu tentar novamente.\n\n" +
+      "O fato de você ter chegado até aqui já mostra que quer que dê certo. Então bora dar o próximo passo 👊\n\n" +
+      "🎥 Entre no Hub e continue de onde parou: {hub}\n\n" +
+      "⚠️ Dica de ouro: assista pausando e executando junto. As aulas são curtas, mas é a execução que traz resultado.\n\n" +
+      "🤖 Se travar em algo, chame a AGUIA e descreva sua dúvida em detalhes: {aguia}",
+  },
+
+  // Usado exclusivamente em "Outro motivo", depois de o aluno aceitar
+  // explicitamente a oferta de 6 meses da Jornada Aceleração.
   reter_bonus: {
     terminal: true,
     tag: "[URA] revertido",
