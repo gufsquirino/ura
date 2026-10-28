@@ -1,8 +1,8 @@
 {
   "name": "ura-motor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   }
 }
