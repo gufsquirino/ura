@@ -1,6 +1,6 @@
 // ============================================================
 //  MOTOR DA URA  —  /api/ura   (REST, sem supabase-js)
-//  BUILD: 20260907-2138 | Atualizado: 2026-09-07 21:38 -03
+//  BUILD: 20261027-2135 | Atualizado: 2026-10-27 21:35 -03
 //
 //  ARQUITETURA:
 //  - O TEMPLATE do WhatsApp mostra o menu principal (no canvas).
@@ -25,9 +25,14 @@ const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 const sbHeaders = {
   apikey: SB_KEY,
-  Authorization: `Bearer ${SB_KEY}`,
   "Content-Type": "application/json",
 };
+
+// Chaves legadas service_role são JWTs e aceitam Authorization Bearer.
+// As novas chaves sb_secret_* devem ser enviadas somente como apikey.
+if (SB_KEY?.startsWith("eyJ")) {
+  sbHeaders.Authorization = `Bearer ${SB_KEY}`;
+}
 
 async function lerEstado(telefone) {
   const url = `${SB_URL}/rest/v1/ura_estado?telefone=eq.${telefone}&select=no_atual`;
@@ -58,12 +63,15 @@ async function apagarEstado(telefone) {
 
 async function logar(telefone, no_de, resposta, no_para) {
   try {
-    await fetch(`${SB_URL}/rest/v1/ura_log`, {
+    const r = await fetch(`${SB_URL}/rest/v1/ura_log`, {
       method: "POST",
       headers: sbHeaders,
       body: JSON.stringify({ telefone, no_de, resposta, no_para }),
     });
-  } catch (_) {}
+    if (!r.ok) console.error(`logar: ${r.status} ${await r.text()}`);
+  } catch (err) {
+    console.error("logar:", err);
+  }
 }
 
 function norm(s) {
@@ -183,7 +191,7 @@ export default async function handler(req, res) {
     if (invalido) {
       // garante que o estado do nó atual está salvo (pra próxima tentativa)
       await salvarEstado(telefone, noAtualNome);
-      logar(telefone, noAtualNome, mensagem, noAtualNome + " (invalido)");
+      await logar(telefone, noAtualNome, mensagem, noAtualNome + " (invalido)");
       return res.status(200).json({
         texto: "Responda somente com o número da opção, por favor. 🙂",
         acao: "enviar",
@@ -191,7 +199,7 @@ export default async function handler(req, res) {
     }
 
     const destino = resolveNo(destinoNome);
-    logar(telefone, noAtualNome, mensagem, destinoNome);
+    await logar(telefone, noAtualNome, mensagem, destinoNome);
 
     // terminal -> encerra sessão
     if (destino?.terminal) {
