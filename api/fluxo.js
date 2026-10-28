@@ -1,6 +1,6 @@
 // ============================================================
 //  FLUXO DA URA — SNR (portado do canvas A&G - URA)
-//  BUILD: 20261027-2139 | Atualizado: 2026-10-27 21:39 -03
+//  BUILD: 20261027-2158 | Atualizado: 2026-10-27 21:58 -03
 //
 //  Menu principal: mostrado pelo TEMPLATE (canvas). O motor recebe
 //  a escolha 1-7 e roteia. Sub-menus são texto digitado pelo aluno.
@@ -16,7 +16,7 @@ export const LINKS = {
   hub:      "https://app.sistemanovarenda.com/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20261027-2139";
+export const URA_BUILD = "20261027-2158";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -192,9 +192,10 @@ export const FLUXO = {
   acesso_snr: {
     mensagem:
       "🔑 Vamos resolver isso agora 👇\n\n" +
-      "1️⃣ Acesse: {hub}\n2️⃣ E-mail: o mesmo da compra\n3️⃣ Senha padrão: novarenda2026\n\n" +
-      "❌ Não funcionou? Clique em *Esqueci minha senha* e recupere pelo e-mail.\n" +
-      "📩 Não chegou? Olhe em spam / promoções.\n\n" +
+      "1️⃣ Acesse: {hub}\n" +
+      "2️⃣ Informe o *mesmo e-mail usado na compra* — ele já aparece nesta conversa.\n" +
+      "3️⃣ Você receberá um *código de 6 dígitos* nesse e-mail. Digite o código para entrar.\n\n" +
+      "📩 Se o código não chegar, confira spam, promoções e se o e-mail foi digitado corretamente.\n\n" +
       "Resolveu?\n1️⃣ Sim ✅ · 2️⃣ Preciso de ajuda",
     opcoes: [
       { aceita: ["1","sim","entrei","consegui"], vai_para: "resolvido" },
