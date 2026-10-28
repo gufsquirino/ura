@@ -1,6 +1,6 @@
 // ============================================================
 //  MOTOR DA URA  —  /api/ura   (REST, sem supabase-js)
-//  BUILD: 20261027-2135 | Atualizado: 2026-10-27 21:35 -03
+//  BUILD: 20261027-2139 | Atualizado: 2026-10-27 21:39 -03
 //
 //  ARQUITETURA:
 //  - O TEMPLATE do WhatsApp mostra o menu principal (no canvas).
@@ -23,6 +23,16 @@ import { FLUXO, render, NO_ENTRADA, URA_BUILD } from "./fluxo.js";
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
 
+const SB_KEY_TYPE = SB_KEY?.startsWith("sb_secret_")
+  ? "secret"
+  : SB_KEY?.startsWith("sb_publishable_")
+    ? "publishable"
+    : SB_KEY?.startsWith("eyJ")
+      ? "legacy-jwt"
+      : SB_KEY
+        ? "unknown"
+        : "missing";
+
 const sbHeaders = {
   apikey: SB_KEY,
   "Content-Type": "application/json",
@@ -37,7 +47,7 @@ if (SB_KEY?.startsWith("eyJ")) {
 async function lerEstado(telefone) {
   const url = `${SB_URL}/rest/v1/ura_estado?telefone=eq.${telefone}&select=no_atual`;
   const r = await fetch(url, { headers: sbHeaders });
-  if (!r.ok) throw new Error(`ler estado: ${r.status}`);
+  if (!r.ok) throw new Error(`ler estado: ${r.status} ${await r.text()}`);
   const rows = await r.json();
   return rows[0] || null;
 }
@@ -53,12 +63,13 @@ async function salvarEstado(telefone, no_atual) {
       atualizado_em: new Date().toISOString(),
     }),
   });
-  if (!r.ok) throw new Error(`salvar estado: ${r.status}`);
+  if (!r.ok) throw new Error(`salvar estado: ${r.status} ${await r.text()}`);
 }
 
 async function apagarEstado(telefone) {
   const url = `${SB_URL}/rest/v1/ura_estado?telefone=eq.${telefone}`;
-  await fetch(url, { method: "DELETE", headers: sbHeaders });
+  const r = await fetch(url, { method: "DELETE", headers: sbHeaders });
+  if (!r.ok) throw new Error(`apagar estado: ${r.status} ${await r.text()}`);
 }
 
 async function logar(telefone, no_de, resposta, no_para) {
@@ -121,6 +132,7 @@ export default async function handler(req, res) {
   // Permite conferir no navegador/curl qual versão está publicada, sem
   // exibir informação adicional nas mensagens enviadas ao aluno.
   res.setHeader("X-URA-Version", URA_BUILD);
+  res.setHeader("X-URA-Supabase-Key-Type", SB_KEY_TYPE);
 
   if (req.method !== "POST") {
     return res.status(405).json({ erro: "use POST" });
