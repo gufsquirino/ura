@@ -16,7 +16,7 @@ export const LINKS = {
   hub:      "https://app.sistemanovarenda.com/",
   central:  "https://ajuda.sistemanovarenda.com/",
 };
-export const URA_BUILD = "20261027-2158";
+export const URA_BUILD = "20261114-sem-genius";
 export const HORARIO = "Seg-Sex 9h-12h e 14h-18h · Sáb 9h-12h";
 export const NO_ENTRADA = "entrada";
 
@@ -180,13 +180,13 @@ export const FLUXO = {
   acesso_qual: {
     mensagem:
       "Só me fala aqui... o que você está precisando acessar agora?\n\n" +
-      "1️⃣ Sistema Nova Renda (as aulas)\n2️⃣ Plataforma Genius\n3️⃣ Loja Hoobfy",
+      "1️⃣ Sistema Nova Renda (as aulas)\n2️⃣ Mentoria Aceleração\n3️⃣ Loja Hoobfy",
     opcoes: [
-      { aceita: ["1","sistema","snr","aulas","nova renda"], vai_para: "acesso_snr" },
-      { aceita: ["2","genius","plataforma"],                vai_para: "acesso_genius" },
+      { aceita: ["1","sistema","snr","aulas","nova renda","genius"], vai_para: "acesso_snr" },
+      { aceita: ["2","aceleração","aceleracao","mentoria","jornada"], vai_para: "acesso_aceleracao" },
       { aceita: ["3","hoobfy","loja"],                      vai_para: "acesso_hoobfy" },
     ],
-    invalido: "O que quer acessar? 1️⃣ Sistema Nova Renda · 2️⃣ Genius · 3️⃣ Hoobfy",
+    invalido: "O que quer acessar? 1️⃣ Sistema Nova Renda · 2️⃣ Mentoria Aceleração · 3️⃣ Hoobfy",
     fallback: "escalar",
   },
   acesso_snr: {
@@ -204,13 +204,19 @@ export const FLUXO = {
     invalido: "Conseguiu entrar? 1️⃣ Sim · 2️⃣ Preciso de ajuda",
     fallback: "escalar",
   },
-  acesso_genius: {
+  acesso_aceleracao: {
     mensagem:
-      "🔑 Vamos resolver 👇\n\n1️⃣ Acesse: https://acesso.geniusdrop.app\n2️⃣ E-mail: o mesmo da compra\n3️⃣ Senha padrão: novarenda2026\n\n❌ Não funcionou? *Esqueci minha senha*.\n📩 Olhe spam / promoções.\n\nResolveu?\n1️⃣ Sim ✅ · 2️⃣ Preciso de ajuda",
+      "🔑 Vamos resolver isso agora 👇\n\n" +
+      "1️⃣ Acesse: https://aceleracao.app/membros\n" +
+      "2️⃣ Informe o *mesmo e-mail usado na compra*.\n" +
+      "3️⃣ Você receberá um *código de 6 dígitos* nesse e-mail. Digite o código para entrar.\n\n" +
+      "📩 Se o código não chegar, confira spam, promoções e se o e-mail foi digitado corretamente.\n\n" +
+      "Resolveu?\n1️⃣ Sim ✅ · 2️⃣ Preciso de ajuda",
     opcoes: [
-      { aceita: ["1","sim"], vai_para: "resolvido" },
-      { aceita: ["2","ajuda","nao"], vai_para: "escalar" },
+      { aceita: ["1","sim","entrei","consegui"], vai_para: "resolvido" },
+      { aceita: ["2","ajuda","nao"],             vai_para: "escalar" },
     ],
+    invalido: "Conseguiu entrar? 1️⃣ Sim · 2️⃣ Preciso de ajuda",
     fallback: "escalar",
   },
   acesso_hoobfy: {
